@@ -15,6 +15,7 @@
 \usepackage{multirow}
 \usepackage{placeins}
 \usepackage{hhline}
+\usepackage{MnSymbol}
 
 \def\d{\,{\rm d}}               % differential
 \def\vc#1{\mathbf{\boldsymbol{#1}}}     % vector
@@ -27,10 +28,13 @@
 \def\todo#1{{\color{red}TODO: #1}}
 \def\R{\mathbf{R}}
 \def\pluseq{\mathrel{+}=}
-
+\def\argdot{{\hspace{0.18em}\cdot\hspace{0.18em}}}
 \def\Bavg#1{\Left\langle#1\Right\rangle}
 \def\avg#1{\langle#1\rangle}
+\def\var#1{\llangle#1\rrangle}
 \def\Var{\mathop{\rm Var}}
+\def\Cov{\mathop{\rm Cov}}
+%\def\log{\mathop{\rm log}}
 \def\abs#1{|#1|}
 \DeclareMathOperator{\Span}{span}
 
@@ -74,36 +78,50 @@ Possible outcomes:
 In this section we shall introduce the MLMC estimator and consider its application to a random variable based on a solution to a PDE.
 Let $(\Omega, \Sigma, P)$ be a probability space and $X(\omega)$ be a random variable
 which can not be sampled exactly, but we are able to sample its approximation $X^h(\omega)$. 
-Consider classical MC approximation of the mean value $\E X$ by the sample mean:
+Consider classical MC approximation of the expectation $\E X$ by the sample mean:
 \[
-	\avg{X^h}_N = \frac{1}{N}\sum_{i=1}^{N} X^h(\omega_i).
+    \avg{X}_N = \avg{X^h}_N = \frac{1}{N}\sum_{i=1}^{N} X^h(\omega_i).
 \]
-Mean square error or variance of this estimator can be decomposed as:
+As the estimator is unbiased, the mean square error (MSE) can be decomposed as:
+\begin{equation}
+    \label{eq:mc_mse}
+    \E[\avg{X}_N - E X]^2 = \Var(\avg{X}_N) + \abs{\E X^h - \E X}^2
+\end{equation}
+where the variance of the estimator is
 \[
-	\Var[ \avg{X^h}_N - \E X ] = \frac{1}{N} \Var X^h + \abs{\E X^h - \E X}^2
+    \Var(\avg{X}_N) = \frac{1}{N}\Var(X^h).
 \]
-where the first part is the sampling error and the second part is error of the approximation $X^h$. Classical MC method diminish the sampling error just by increasing $N$. The idea of MLMC method is to introduce another approximation $X^H$ that is cheaper to sample and use the composed estimator
+The first term on the right side of \eqref{eq:mc_mse} is the sampling error while the second part is error of the approximation $X^h$. Classical MC method diminish the sampling error just by increasing $N$. Idea of the MLMC method is to introduce another approximation $X^H$ that is cheaper to sample and use the composed estimator
 \[
-	\E X^h \approx \avg{X^h}_{M,N} = \avg{X^H}_M	 + \avg{X^h - X^H}_N, 
+	\E X^h \approx \avg{X}_{M,N} = \avg{X^H}_M	 + \avg{X^h - X^H}_N, 
 \]
 with variance
 \[
-	\Var[\avg{X^h}_{M,N} - X^h] =  \frac{1}{M}\Var{X^H} + \frac{1}{N}\Var[X^h-X^H]. 
+	\Var(\avg{X}_{M,N}) =  \frac{1}{M}\Var{X^H} + \frac{1}{N}\Var[X^h-X^H]. 
 \]
-Now we can increase precision of the estimator by increasing the number $M$ of the cheap coarse samples, while keeping the number $N$ of the expensive fine samples low provided the variance of
+Now we can increase precision of the estimator by increasing the number $M$ of the cheap coarse samples, while keeping the number $N$ of the expensive fine samples low provided the variance
 $\Var[X^h-X^H]$ is small.
 
-Using a sequence of approximations $X^l = X^{h_l}$, for $l=1,\dots, L$ and $X^0 = 0$, we obtain the MLMC estimator:
+Using a sequence of approximations $X^l = X^{h_l}$, for $l=1,\dots, L$ and $X^0 = 0$, 
+we obtain the MLMC estimator of $\E X$ in the form
 \begin{equation}
     \label{eq:mlmc_est}
-	\E X^L \approx \avg{X^L}_{\vc N} = \sum_{l=1}^L \avg{X^l - X^{l-1}}_{N_l} 	= \sum_{l=1}^L \avg{\Delta X^l}_{N_l}
+	\avg{X^L}_{\vc N} = \sum_{l=1}^L \avg{X^l - X^{l-1}}_{N_l} = \sum_{l=1}^L \avg{\Delta^l X}_{N_l}
 \end{equation}
-where $\vc N=(n_1,\dots, n_L)$ is the \emph{sampling vector} and $\Delta X^l(\omega) =X^l(\omega) - X^{l-1}(\omega)$. Variance of the MLMC estimator is:
+where $\vc N=(n_1,\dots, n_L)$ is the \emph{sampling vector} of the number of samples on individual levles 
+and $\Delta^l X(\omega) = X^l(\omega) - X^{l-1}(\omega)$. Variance of the MLMC estimator is:
 \begin{equation}
     \label{eq:var_mlmc}
-	\Var \avg{X^L}_{\vc N} = \sum_{l=1}^L \frac{V_l}{N_l},\quad V_l = \Var \avg{\Delta X^l}_{N_l}.
+    \Var( \avg{X^L}_{\vc N}) = \sum_{l=1}^L \frac{V_l}{N_l},\quad V_l = \Var(\avg{\Delta^l X}_{N_l}).
 \end{equation}
+The level variances $V_l$ can be estimated using standard unbiased estimator:
+\[
+  V_l \approx \var{X}_{N_l} = \frac{1}{N_l-1} \sum_{i=1}^{N_l} \big(\Delta^l X_i - \avg{\Delta^l X}_{N_l}\big)^2
+\]
 
+
+\subsection{Aplication to finite element solutions}
+\todo{Very preliminary, make it more precise. Refer to other applied papers.}
 In particular we are interested in the case $X=F(u)$, where $F$ is a functional representing an observation of
 the solution $u$ to a PDE with random data $d(\omega)$. The approximations $X^l = F(u^{h_l})$ are same observations
 for an approximate solution $u^{h_l}$ computed using a mesh with step $h_l$. Let $u$ be from a space $W$, $u_h$ from $W_{h_l} \subset W$ and assume a usual error estimate in the form:
@@ -127,7 +145,10 @@ By the same token we have
 The cost $C_l$ of evaluation of the single sample $X^{l-1}(\omega) - X^l(\omega)$ is $C_l \approx  h_l^{-\gamma}$, e.g. an efficient solver of an elliptic equation have $\gamma=d$  where $d=1,2,3$ is the dimension of the problem. 
 
 \subsection{Optimal choice of number of samples}
-Efficiency of the MLMC estimator \eqref{eq:mlmc_est} depends on the optimal choice of the sample vector $\vc N$. Let  the level variances $V_l$ be given and let us denote $C_l$ the computational cost of a single sample of the difference $\Delta X^l$ at the level $l=1,\dots, L$. For a given target variance $V$ (c.f. \eqref{eq:var_mlmc}), we want to minimize the total cost
+Efficiency of the MLMC estimator \eqref{eq:mlmc_est} depends on the optimal choice of the sample vector $\vc N$.
+Basic analysis was done by Giles in \cite{Giles2015}. In this section we report the formulas \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} and propose slight modification suitable for practical usage.
+
+Let  the level variances $V_l$ be given and let us denote $C_l$ the computational cost of a single sample of the difference $\Delta X^l$ at the level $l=1,\dots, L$. For a given target variance $V$ (c.f. \eqref{eq:var_mlmc}), we want to minimize the total cost
 \begin{equation}
     \label{eq:total_cost}
 	C = \sum_l C_l N_l.
@@ -138,17 +159,17 @@ This leads to minimization problem for the functional
 \]
 Straightforward calculation then provides optimal choice of $\vc N$ for given $V$ reported already in \cite{Giles2015}:
 \begin{equation}
-	\label{opt_n_for_var}
+	\label{eq:opt_n_for_var}
 	N_l^V = \sqrt{\frac{V_l}{C_l}} \frac{\sum_i \sqrt{V_i C_i}}{V}, \quad \text{for }l=1,\dots, L.
 \end{equation}
 Similarly we obtain $\vc N$ that minimize the total variance for the fixed total cost $C$ as
 \begin{equation}
-	\label{opt_n_for_cost}
+	\label{eq:opt_n_for_cost}
 	N_l^C = \sqrt{\frac{V_l}{C_l}} \frac{C}{\sum_i \sqrt{V_i C_i}}
 	, \quad \text{for }l=1,\dots, L.
 \end{equation}
 
-Formulas \eqref{opt_n_for_var} and \eqref{opt_n_for_cost} are based on the knowledge of the level variances $V_l$ and computational costs $C_l$ which are usually not known and must be estimated (see Section \ref{sec:VarEst}). These small errors lead to large changes in the optimal sample vector since related minimized functionals are quite flat at the optimal point.  This often results in overestimating the number of samples, especially on lower levels. To mitigate this problem we rather use
+Formulas \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} are based on the knowledge of the level variances $V_l$ and computational costs $C_l$ which are usually not known and must be estimated (see Section \ref{sec:VarEst}). These small errors lead to large changes in the optimal sample vector since related minimized functionals are quite flat at the optimal point.  This often results in overestimating the number of samples, especially on lower levels. To mitigate this problem we rather use
 \[
 	N_l^{V*} = \min( N_l^V, \frac{V_l L}{V} )
 \]
@@ -168,10 +189,54 @@ and similarly for $N_l^{C*}$.
 
 
 
-\subsection{Estimate level variance}
+\subsection{Estimate level variances and costs}
 \label{sec:VarEst}
-In order to make MLMC algorithm fully automatic we want to estimate level variances $V_l$ from already collected samples. Since direct estimates are too inaccurate for higher levels we rather setup a regression model for $V_l$ and estimate its parameters using data 
-from all levels. Moreover we also combine data for different moments.
+As the exact values for $V_l$ and $C_l$ in \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} are not available they are estimated from initial fraction of the samples. In particular $V_l$ is estimated by standard unbiased variance estimater $\widehat V_l$ and $C_l$ by a mean of times of collected samples 
+$\widehat C_l$. Error of these estimates can be quite large especially on higher levels. 
+
+
+
+In order to make MLMC algorithm fully automatic we have to estimate level variances $V_l$ from already collected samples. Since direct estimates are too inaccurate for higher levels we rather setup a regression model for $V_l$ and estimate its parameters using data from all levels. Moreover we also combine data for different moments.
+
+
+Using the approximation:
+\[
+ \log \widehat V_l = \log V_l + \epsilon + O(\epsilon^2), \quad \epsilon = \frac{\widehat V_l - V_l}{V_l}
+\]
+we obtain approximation for its variance as:
+\[
+   \Var(\log \widehat V_l) = \Var\left[ \frac{\sum_{i=1}^{N_l} Y_i^2}{N_l -1}\right]  \approx \frac{1}{N-1}
+\]
+for some standardized i.i.d. samples $Y_i$.
+
+Under assumption, that regression model $lm(\vc \alpha)$ fits well we have 
+\[
+ 1 = (N-1) \Var[log \widehat V] = \E[ (\log \widehat V - lm(\alpha))^2 (N-1) ] 
+\]
+
+
+\[
+  W_l = \sqrt{N_l-1}*(\log \widehat V_l - lm(\widehat{\vc\alpha}))
+\]  
+  is approximately $N(0,1)$. We use test for variance and possibly 
+reduce number of levels used for regression. If
+\[
+  \sum_l W_l^2 > \chi^2_{N-1}(1-\alpha). 
+\]
+we reject hypothesis of the good fit.
+\todo{Move variance approximation to notes since we need more testing}
+Remarks:
+\begin{itemize}
+ \item Empirically, for the Flow problem, 9 level, for kvadratic model and using levels 3,4,5,6,7,8 for the fit we obtain variances that are significantly better then raw varainces.
+ \item The hypothesis testing doesn't work. Even if it holds that $W_l$ is approximately $N(0,1)$.
+ We obtain much higher values for the statistics. Further it depends on number of moments and number of used levels. 
+ \item It behaves like it have much greater variance then 1, since $W_l^2$ values corresponds always to the p-values close to 1, which corresponds to big error of the fit.
+ \item Questionable how it may work for smaller number of levels.
+ \item Must also be tested for different simulations.
+\end{itemize}
+
+
+
 
 Let us assume that the level difference $Z_l^r = X_l^r - X^r_{l-l}$ for level $l=1,\dots L$ and a moment $r$ is normally distributed 
 with mean estimate $\hat{Z}_l^r$ and variance estimate $V_l^r$ is
@@ -206,6 +271,22 @@ For small values of $N_l$ we compute $\D \epsilon_l$ using numerical quadrature.
 $$
     f(\epsilon) = \exp(\epsilon)N_l\chi^2_{n-1}(\exp(\epsilon)N_l).
 $$
+
+\begin{figure}
+ \includegraphics[width=0.55\textwidth]{bs_var_var_20.pdf}
+ \hspace{-0.1\textwidth}
+ \includegraphics[width=0.55\textwidth]{bs_var_var_Nl.pdf}
+ \caption{Estimate of error of estimators for $V^r$, $V_l^r$. Left figure demonstrate independece on level, right figure independence on $N_l$. Bootstrapping use 300 samples.}
+ \label{fig:bs_var_var}
+\end{figure}
+
+\begin{figure}
+ \includegraphics[width=0.55\textwidth]{bs_var_var_composition.pdf}
+ \caption{BS estimate of the MSE of the variance estimate and its dropdown to individual levels. Realistic sample vector for a target variance $1e-4$.}
+ \label{fig:bs_var_var_comp}
+\end{figure}
+
+
 \subsubsection{Uvahy}
 Cilem je ziskat odhad rozptylu MLMC estimatoru, tak aby skutecny rozptyl byl mensi s danou pravdepodobnosti. 
 
@@ -225,7 +306,442 @@ Notes:
 \end{itemize}
 
 
+\section{Maximal Entropy method}
+\def\vl{{\vc\lambda}}
+\def\estvl{{\vc{\hat\lambda}}}
+\def\estrho{\hat\rho}
+\def\vmu{\vc\mu}
+\def\estvmu{{\vc{\hat\mu}}}
+\def\vphi{\vc\phi}
 
+The MLMC  estimator \eqref{eq:mlmc_est} can be applied to estimate any generalized moment $\E[\phi(X)]$ 
+of the random variable $X$ using the same set of random samples. Taking a suitable 
+set of such moments it is possible to construct an approximation to the PDF of $X$. This section first
+summarize the Maximal Entropy method and related theoretical results slightly simplifying proofs form \cite{Barron1991}. Later we provide natural selection of the polynomial basis based on the estimate of the covariance matrix and we show that this choice significantly improves convergency of the related optimization problem.
+
+Let $X$ be a continuous random variable with density function $\rho$ that have bounded support
+$supp(\rho) \subset \Omega$ for a finite interval $\Omega \subset \R$. Further consider generalized moments
+\begin{equation}
+    \label{eq:gen_moments}
+    \mu_m = \E_{\rho}[\phi_m(X)], \quad 
+\end{equation}
+for a finite set of linearly independent moment functions $\phi_1=1$, $\phi_m\in C^r(\Omega)$, $m=2,\dots, M$ forming a base of the space
+\[
+    \mathcal V_M = \Span\{\phi_m, m=1,\dots, M\}.
+\] 
+We shall use also the vector notation $\vphi = (\phi_1, \dots,\phi_M)$. The vector of moment values
+$\vmu$ must be from $\mathcal M \subset \R^M$ with $\mu_1 = 1$.
+
+Applying the MLMC estimator \eqref{eq:mlmc_est} and estimate of the variance \eqref{eq:var_mlmc} 
+to the random variables $\phi_m(X)$, $m=1,\dots, M$ we obtain estimates of generalized moments
+\begin{equation}
+    \label{eq:mlmc_est_moments}
+    \estvmu = \avg{\vphi} = \sum_{l=1}^L \frac{1}{N_l} \sum_{i=1}^{N_l} \Delta^l\vphi(X_i^l)
+\end{equation}
+as well as estimate for the error:
+\[
+    \Var(\avg{\vphi}_{\vc N}) =  \sum_{l=1}^{L} \frac{1}{N_l} \Var{\Delta^l\vphi} 
+    \approx \sum_{l=1}^{L} \frac{1}{N_l} \var{\Delta^l\vphi}_{N_l}.
+\]
+
+Similarly, we can obtain MLMC estimate of the covariance matrix $\tn C = \Cov{\vc\phi}$: 
+\begin{equation}
+    \label{eq:mlmc_est_cov}
+    \avg{\tn C} = \avg{(\vphi - \estvmu)\otimes(\vphi - \estvmu)}_{\vc N} = 
+    \sum_{l=1}^L \frac{1}{N_l} \sum_{i=1}^{N_l} \Delta^l\Big[ 
+    \big(\vphi(X_i^l) - \estvmu\big)\otimes\big(\vphi(X_i^l) - \estvmu\big)\Big].
+\end{equation}
+The same set of samples can be used in estimators \eqref{eq:mlmc_est}, \eqref{eq:mlmc_est_moments}, and \eqref{eq:mlmc_est_cov} as well as in the estimators of their errors.
+
+
+Our next goal is to to find an approximation $\rho^M$ to the unknown density $\rho$ based only on values $\vmu \in \mathcal M$ of the generalized moments. From the infinte set of such densities we choose the one that maximize the Shanon's entropy,
+$S = -\E_\rho[\log \rho]$,
+which corresponds to the minimization of any additional information. 
+In slight generalization of this approach, we assume a prior density $p$ and going to minimize the Kullbeck-Leibler divergence:
+\[
+    D(\rho\Vert p) = \int_\Omega \rho \log(\rho / p) \d x,
+\]
+under constrain $\E_\rho[ \vphi ] = \vmu$. 
+% This leads to minimization of the functional:
+% \begin{align}
+%     \Phi(\rho, \vc\lambda) 
+%     &= 
+%     \int_\Omega \rho \Big( \vc\lambda \cdot \vc \phi - \log(\rho / p) \Big) \d x - \vc\lambda \cdot \vc\mu.
+% \end{align}
+Applying the Lagrange multipliers and taking variation with respect to $\rho$ the optimality conditions lead to the density in the form (se also \cite{...}):
+\[
+    \rho_{\vl}(x) = p e^{\vl\cdot\vphi}
+\]
+where we assume $\phi_1(x) = 1$ and $\mu_1 =1$. The parameters $\vl$ are solution
+to the nonlinear system:
+\begin{equation}
+    \label{eq:moment_system}
+    \vc G(\vl) = \int_\Omega \vphi\, p e^{\vl\cdot \vphi}\d x - \vmu = 0
+\end{equation}
+with the Jacobi matrix:
+\[
+    \tn H = \int_\Omega \vphi \otimes \vphi\, 
+    p e^{\vl\cdot\vphi} \d x.
+\]
+\begin{lemma}
+If $p$ is strictly positive and measurable on $\Omega$ and functions $\phi_m$,  $m=1,\dots,M$ are linearly independent, then matrix $\tn H$ is symmetric positive definite for any $\vl$.
+\end{lemma}
+\begin{proof}
+For any non-zero $\vc u \in \R^M$ the function $f_{\vc u}(x) = \sum_m u_m \phi_m(x)$ is nonzero and thus
+\[
+    \vc u^T \tn H \vc u = \int_{\Omega} f_{\vc u}^2 p \exp\Big\{ \vc\lambda\cdot \vc\phi\Big\} \d x > 0.
+\]
+\end{proof}
+The system \eqref{eq:moment_system} represents optimality conditions to the minimization problem
+\begin{equation}
+    \label{eq:min_problem}
+    \text{minimize}(\vc\lambda):\quad F(\vl) = \int_{\Omega} \rho_{\lambda} - \vl\cdot\vmu.
+\end{equation}
+The functional is strictly convex due to strict convexity of $e^t$ (note also that $\tn H$ is SPD Hessian of $F$). 
+Therefore the problem \eqref{eq:min_problem} posses a unique global minimum $\vl(\vmu)$ which is
+also solution to the system \eqref{eq:moment_system}.
+
+
+\subsection{Projection to exponential family}
+
+Following \cite{Barron1991}, we can define set of densities with given moments $\vmu$:
+\[
+    C_{\vmu} = \{ \rho : \E_\rho[\vphi] = \vmu \}
+\]
+as well as the exponential family of densities:
+\[
+    \mathcal F_{p} = \{ \rho_\vl = 
+    p e^{\vl\cdot\vphi} :
+    \vl \in \Lambda\},\quad \Lambda = 
+    \{\vl\in\R^M,\ \int_\Omega p e^{\vl\cdot\vphi} = 1\}.
+\]
+Then we can follow \cite[Lemma 2]{Barron1991} to get decomposition:
+\begin{lemma}
+\label{thm:decomposition}
+For given $\vmu \in \mathcal M$ denote $\vl =\vl(\vmu)$ the unique solution to the system \eqref{eq:moment_system}. Then for any $\rho \in C_{\vmu}$ and $\estrho=\rho_\estvl \in\mathcal F_p$ the decomposition holds:
+\begin{equation}
+    \label{eq:decomposition}
+    D(\rho\Vert\estrho) = D(\rho\Vert\rho_{\vl}) + D(\rho_{\vl}\Vert
+    \estrho).
+\end{equation}
+In particular $\rho_{\vl}$ is minimizer of $D(\rho\Vert\rho_{\vl})$ over $\mathcal F_p$.
+\end{lemma}
+\begin{proof}
+Due to \eqref{eq:moment_system} it holds $\E_{\rho}[\vphi] = \E_{\rho_{\vl}}[\vphi] = \vmu$. Then straightforward application of this identity yields:
+\[
+ D(\rho\Vert\estrho) = D(\rho\Vert\rho_{\vl}) 
+ + \int_\Omega \rho (\vl - \estvl)\cdot \vc \phi = D(\rho\Vert\rho_{\vl}) + D(\rho_{\vl}\Vert\estrho).
+\]
+\end{proof}
+The first term  on the right side of \eqref{eq:decomposition} corresponds to the approximation error of the familly $\mathcal F_p$ while the second term with $\estvl = \estvl(\estvmu)$ represents the error due to the moment estimation. 
+
+\subsection{Approximation error}
+Following estimates are based on \cite[Lemma 2]{Barron1991} 
+\begin{lemma} 
+  \begin{equation}
+      \label{eq:l2_estimate}
+      D(p\Vert q) \le \frac{1}{2}e^{\norm{\log p/q - c}_\infty} \norm{\log p/ q - c}_{L^2_p}^2
+  \end{equation}
+
+  
+  \begin{equation}
+      \label{eq:l1_estimate}
+      D(p\Vert q) \le \frac{1}{2}\norm{\log p/ q}^2_{L^2_p} + \norm{\log p/ q}_{L^1_p}
+  \end{equation}
+ for any constant $c$.
+\end{lemma}
+
+Then for the approximation error we have:
+\begin{lemma}
+\label{thm:approx_error}
+For given approximation space $\mathcal V_M$ and density $\rho\in C_{\vmu}$ let us denote
+\[
+  \epsilon = \epsilon_{M,\infty}(\rho) = \inf_{\vphi \in \mathcal V_M} \norm{\log \rho - \phi}_\infty.
+\]
+Then for the approximation error, we have estimate:
+\[
+D(\rho\Vert\rho_{\vl})  \le \frac{\abs{\Omega}}{2} e^{\epsilon} \epsilon^2.
+\]
+\end{lemma}
+\todo{Jak je to s volbou $M$, z tohoto lematu by clovek rekl pokud zvolim dost vysoke $M$ tak mohu aproximovat libovolne presne a koverguje to pomerne rychle. Na druhou stranu numerika muze rici, ze por dana data nedostanu lepsi aproximaci zvetsenim $M$. Pro numericky smysluplne $M$ muze byt aproximation error pripadne velmi vysoka. Je nejaka sance udelat neco jako a posteriorni odhad?} 
+\begin{proof}
+Lemma \ref{thm:decomposition} states:
+\[
+D(\rho\Vert\rho_{\vl}) \le \inf_{\estvl \in \Lambda} D(\rho\Vert\rho_{\estvl})
+\]
+Now for any $\vc{\tilde\lambda} \in \R^M$, we can modify the first component to find $\estvl \in \Lambda$ satisfying
+\[
+  \estvl \cdot \vphi = \vc{\tilde\lambda} \cdot \vphi - \psi, \quad \psi 
+                             = \log \int_\Omega p e^{\widetilde{\vc\lambda}\cdot \vc \phi}
+\]
+With such choice we have:
+\[
+D(\rho\Vert\rho_{\vl}) \le \inf_{\estvl \in \Lambda} D(\rho\Vert\rho_{\estvl})
+=\inf_{\vc{\tilde\lambda} \in \R^M} D(\rho\Vert q_{\vc{\tilde\lambda}})
+\]
+Applying \eqref{eq:l2_estimate} with $c = \log p - \psi$, we obtain:
+\[
+  D(\rho\Vert q_{\vc{\tilde\lambda}}) \le 
+  \frac{1}{2}
+  e^{\norm{\log \rho - \vc{\tilde\lambda}\cdot \vc \phi}_\infty} 
+    \norm{\log \rho - \vc{\tilde\lambda}\cdot \vc \phi}_{L^2_p}^2
+  \le \frac{\abs{\Omega}}{2} e^{\epsilon} \epsilon^2.
+\]
+\end{proof}
+For the case of polynomial approximation $\mathcal V_M = P^M(\Omega)$ we can directly apply results form \cite[Section 7]{Barron1991}. For a $\rho \in W^r_2(\Omega)$:
+\[
+    \epsilon_{m,\infty}(\rho) \le C \left(\frac{1}{m}\right)^{r-1} \norm{\rho}_{W^r_2},
+\]
+\[
+    \epsilon_{m,2}(\rho) \le C \left(\frac{1}{m}\right)^{r}\norm{\rho}_{W^r_2}.
+\]
+\subsection{Estimation error}
+We start with sensitivity estimate for the nonlinear system \eqref{eq:moment_system}.
+\begin{lemma}
+\label{thm:lambda_est}
+Let $\estvl(\estvmu)$ be the solution of the system \eqref{eq:moment_system} for an approximation 
+$\estvmu \in \mathcal M$ of the moments \eqref{eq:gen_moments} and let $\vl(\vmu)$ be the solution 
+for exact moments $\vmu$. Then
+\[
+   \abs{\vl - \estvl} \le \frac{1}{\alpha_0} \abs{\vmu - \estvmu} 
+\]
+where $\alpha_0$ is the smallest eigenvalue of the Hessian matrix $\tn H(\estvl)$
+\end{lemma}
+\begin{proof}
+Due to convexity of $e^t$, we have
+\begin{equation}
+  \label{eq:exp_ineq}
+  e^a(b-a)^2 \le (b -a)(e^b - e^a).
+\end{equation}
+for any $a, b\in \R$. This is direct corrolary of $1+t \le e^t$ with $t = b-a$.
+
+
+Now we apply \eqref{eq:exp_ineq} with $a = \estvl\cdot\estvmu$ and $b=\vl\cdot\vmu$ to estimate:
+\begin{align*}
+  \alpha_0 \abs{\vl - \estvl}^2 &\le  (\vl-\estvl)^T\tn H(\estvl)(\vl -\estvl)\\
+  &= \int_\Omega (\vl\cdot\vphi  - \estvl\cdot\vphi)^2 pe^{\estvl\cdot\vphi}
+  \le \int_{\Omega} (\vl\cdot\vphi - \estvl\cdot\vphi) 
+  p(e^{\vl\cdot\vphi} - e^{\estvl\cdot\vphi})\\
+  &=  (\vl - \estvl)\cdot(\vmu - \estvmu) \le \abs{\vl - \estvl}\abs{\vmu - \estvmu}
+\end{align*}
+\end{proof}
+
+Then for the estimation error we have following result.
+\begin{lemma}
+  \label{thm:est_error}
+  Let $\rho_\lambda \in \mathcal F_p \cap C_{\vmu}$ for a $\vmu \in \mathcal M$, 
+  and $\estrho = \rho_{\estvl}\in \mathcal F_p$ 
+  where $\estvl$ is solution of \eqref{eq:moment_system} for $\estvmu \in \mathcal M$. Then 
+  \[
+    D(\rho_{\vl}\Vert \estrho) \le \frac{1}{\alpha_0} \abs{\vmu - \estvmu}^2
+  \]
+\end{lemma}
+
+\begin{proof}
+\def\tvl{\vc{\tilde\lambda}}
+For any $\tvl$, we denote (c.f. \eqref{eq:min_problem}):
+\[
+F_{\estvmu}(\tvl) = \int_{\Omega} \rho_{\tvl} - \tvl\cdot\estvmu.
+\]
+In particular for $\vl$ that is solution of \eqref{eq:moment_system} with $\mu_1 = 1$, we have:
+$F_{\estvmu}(\vl) = 1 - \vl\cdot\estvmu$. Similarly for $\estvl$ holds
+$F_{\estvmu}(\estvl) = 1 - \estvl\cdot\estvmu$. Moreover, since $\estvl$ is minimizer 
+of $F_{\estvmu}$, we conclude:
+\[
+ 0\le F_{\estvmu}(\vl) - F_{\estvmu}(\estvl) = - \estvmu\cdot(\vl - \estvl).
+\]
+Now we can rewrite the KL-divergence as:
+\[
+  D(\rho_{\vl}\Vert \estrho) = (\vl - \estvl)\cdot \vmu \le
+  (\vl - \estvl)\cdot (\vmu - \estvmu)
+\]
+Finally applying Lemma \ref{thm:lambda_est}
+\[
+D(\rho_{\vl}\Vert \estrho) \le \frac{1}{\alpha_0} \abs{\mu - \mu^*}^2
+\]
+ 
+\end{proof}
+Similarly as in \cite[Theorem 3]{Barron1991} we  
+\begin{theorem}
+  \label{eq:estimate_err_var}
+  Let $\rho_{\vl} \in \mathcal F_p \cap C_{\vmu}$ be the projection of the exact density $\rho$ to the exponential family based on exact moments  $\vmu = \E_\rho \vphi$. The MLMC estimator \eqref{eq:mlmc_est_moments} provides estimated moments $\estvmu$, we denote $\estrho = \rho_{\estvl}\in \mathcal F_p$ corresponding density with parameters $\estvl$ given by \eqref{eq:moment_system}.
+  Assuming knowledge of the error $V = \E_{\rho} |\vmu - \estvmu|^2$, then for given (small) probability $\pi$
+  we have
+  \[
+      P_{\rho}\Big( D(\rho_{\lambda}\Vert \estrho) \le \eta\Big) \ge 1 - \pi,\quad 
+      \text{with } \eta = \frac{V}{\alpha_0 \pi},
+  \]
+  where $\alpha_0$ is the smallest eigenvalue of the Hessian matrix $\tn H(\estvl)$.
+  
+\end{theorem}
+\begin{proof}
+  Using Lemma \ref{thm:est_error} and applying Markov's inequality unbiased estimate $\estvmu$ we have:
+  \[
+   P\Big( D(\rho_{\lambda}\Vert \estrho) \ge \eta\Big) 
+   \le P\Big( \abs{\vmu - \estvmu}^2 \ge \alpha_0  \eta\Big)
+   \le \frac{\E_{\rho} |\vmu - \estvmu|^2}{\alpha_0 \eta} = \pi
+  \]
+\end{proof}
+
+
+\todo{TODO:}
+
+Cite estimates for $D(\rho\Vert\rho_{\lambda})$.
+
+Modify estimates for $D(\rho\Vert\rho_{\lambda})$ using $q=p$ and
+approximation of $Cov_p \vc phi$ for Legendere polynoms $\vc\phi$.
+
+Probabilistic result $D(\rho_{\lambda*} \Vert \rho_{\lambda}) < V/p$
+with probability at least $1-p$, where 
+\[
+    V = \sum_r \sum_l \frac{1}{N_l} \Var \delta^l\phi_r \approx \sum_r \sum_l \frac{1}{N_l} \hat{\Var} \delta^l\phi_r 
+\]
+
+\todo{Plot KL divergence between approximations for different $M$. We should have drop in error up to level where the Estimation error dominates.}
+\todo{Choice of basis leading to $\alpha_0 \approx 1$.}
+
+\subsection{Nonlinear solver}
+In this section we shall discus numerical solution of the minimization problem \eqref{eq:min_problem}. We prefere this setting over the direct solution of the nonlinear system \eqref{eq:moment_system} as it allows us to prescribe suitable regularization and penalization terms to improve the stability.
+
+We start with an arbitrary set of moment functions $\vc\phi_m$, $m=1,\dots,M$ with $\phi_1=1$. Crucial observation is that for minimizer $\lambda^*$ the Hessian $\tn H(\lambda^*)$ is close to the covariance matrix.
+Using the MLMC estimate \eqref{eq:mlmc_est_cov} of the covariance matrix, we can find a basis $\widetilde{\vc \phi}$ of $\mathcal V_M$ for which the Hessian $\widetilde{\tn H}(\lambda^*)$ is close to identity matrix.
+
+The covariance matrix of $\vc \phi(X)$ is
+\[
+ \tn C = Cov(\vc\phi) = \E_\rho\big[ (\vc\phi - \hat{\vc\mu})\otimes(\vc\phi - \hat{\vc\mu}) \big]
+              = \E_\rho\big[ \vc\phi \otimes \vc\phi \big] - \hat{\vc\mu}\otimes\hat{\vc\mu}.
+\]
+\[
+  \tn H(\lambda^*) \approx \tn C + \hat{\vc\mu}\otimes\hat{\vc\mu}
+\]
+
+Since $\phi_1 = 1$, we have $\tn C_{1, \argdot} = \tn C_{\argdot,1} = 0$. Remaining part 
+$\overline{\tn C} = \tn C_{[2:M, 2:M]}$ is symetric positive definite matrix. 
+The approximation $\avg{\tn C}$ have also zero first row and first column, remaining part 
+is symmetric, but not necessarily positive definite due to variance on individual levels.
+
+\[
+  \tn M = 
+  \begin{pmatrix}
+    -1    & 0 &\dots &0\\
+    -\mu_2    & 1 &\dots &0\\
+    \vdots& 0 &\ddots      &\vdots\\
+    -\mu_n    & 0 &\dots &1
+  \end{pmatrix}
+\]
+$M^{-1} = M$ (involutory matrix)
+\[
+  M\tn H M^T \approx M \E[\vc\phi\otimes\vc\phi] M^T = \tn C
+\]
+\[
+ \avg{C} \approx P\lambda P^T
+\]
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+\subsection{Basis reduction}
+Assume that we have $m$ moments.
+We start with estimate $\tn C$ of the covariance matrix of the random variable $X$. Because of level differences this approximation is symmetric but need not to be positive definite. Therefore we fisrt compute eigenvalue decomposition:
+\[
+ \tn C = P \lambda P^T
+\]
+where $P$ is an ortonormal matrix and $\lambda$ is diagonal matrix of sorted eigen values. Then we remove
+first $m-n$ small eignevalues and form $\tilde\lambda$ $n\times n$ diagonal matrix from the remaining eigenvalues and also $\tilde P$ an $m\times n$ matrix of first $n$ columnes of $P$. 
+It still holds $\tilde P^T \tilde P = \tn I$
+Further perform $QR$ decomposition
+\[
+  QL = \tilde{\lambda}^{-\frac{1}{2}} \tilde P^T
+\]
+\[
+  L^TQ^T = \tilde P \tilde{\lambda}^{-\frac{1}{2}} 
+\]
+
+for some $Q$ ($n\times n$) and $L$ ($n\times m$) lower triangular.
+Now for $\tilde{\tn C} = \tilde{P} \tilde{\lambda} \tilde{P}^T$ we have:
+\[
+    L \tilde{\tn C} L^T = Q^T \tilde{\lambda}^{-\frac{1}{2}} \tilde P^T \tilde{P} 
+    \tilde{\lambda} \tilde{P}^T   \tilde{P} \tilde{\lambda}^{-\frac{1}{2}} Q = \tn I_{n\times n}.
+\]
+
+The reduced set of moments will be $\tilde{\vc\phi} = L{\vc\phi}$.
+
+
+
+
+\section{Choice of moments}
+\subsection{Monomials}
+First choice for moment functions are monomials:
+\[
+    \phi_r(x) = x^r
+\]
+corresponding to classical moments.
+In order to improve conditioning of the problem we should use centralized moments:
+\begin{align}
+    \phi_0(x) &= 1\\
+    \phi_1(x) &= x - \mu_1\\
+    \phi_r(x) &= \phi_r(x - \mu_1), \text{ for }r=1\dots R
+\end{align}
+with $\mu_0 = 1$.
+
+However as the entropy function $e_n(x) = -\ln(\rho_n)$ is a linear combination of the generalized moment functions, it may expect that using monomials leads to badly conditioned non-linear problem. In order to 
+get better conditioning needs to choice moment functions to be nearly orthogonal and possibly with small support.
+
+\subsection{Fourier moment functions}
+
+
+\subsection{Spline approximation}
+In order to keep Jacobi matrix well conditioned can keep supports of $\phi_r$ to be mostly disjoint since if $supp \phi_r$ is disjoint with $supp \phi_s$ we have $H_{rs} = 0$.
+In order to keep basic smoothness, we may use spline base functions, in particular cubic splines.
+
+
+\section{Approximation error}
+Usual way to measure error of the approximation of the density function is the Kullback–Leibler divergence (see 
+\href{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence}{wikipedia}):
+\[
+D_{KL}(P, Q) = \int_{R} p(x)\log p(x)  - p(x)\log q(x) \d x
+\]
+This measures the information of the true density function $p$ that is lost when using its approximation $q$. Or $p$ can be viewed as a posterior distribution (having full information) and $q$ as prior distribution in Bayesian framework.
+
+In our case, we take $q(x)=\rho_n(x)$. Now we want to know how the divergence is influenced by the variance of moments $\mu_r'$, which are given by the MC approximation.
+
+\section{Synthetic experiments}
+\section{Correlated random fields}
+We what to generate realizations of a random field: $Z(\vc x, \omega)$, for $\vc x$ in domain $D \subset R^d$. We consider {\it second order field}, i.e. with finite variance for every $\vc x\in D$. For such fields we can define mean:
+\[
+    \mu_Z(\vc x) = \E\big[ Z(\vc x) \big]
+\]
+and covariance:
+\[
+    C_Z(\vc x, \vc y) = \E\big[ (Z(\vc x) - \mu(\vc x))(Z(\vc y) - \mu(\vc y)) \big]
+\]
+
+We restrict ourself to the case of stationary fields, where $C$ depends only on $(\vc x - \vc y)$. Our aim is to compute lot of realizations of the field fro a fixed set of points. Further on, we focus on the zero-mean fields:
+\[
+    \tilde Z(\vc x) = Z(\vc x) - \mu(\vc x), \E(\tilde Z) = 0.
+\]
+
+TODO:
+\begin{itemize}
+\item Approximation of quantiles or distribution function via. density is not optimal, since the error is accumulated through integration of the density. Consider approximation of distribution via. approximation of Havyside function (see Giles), propose some approximation for quantiles.
+
+\item Derive error estimates for density, quantiles, distribution  for various set of moments. How to approximate tails? Is the maximum entropy the best choice?
+
+\item How to use MLMC for generated random fractures, in particular how to make two generated fracture sets that are "correleated".
+\end{itemize}
+
+\section{Numerical experiments}
 
 \subsection{MLMC sampling algorithm}
 Optimal choice of the sample vector $\vc N$ given by \eqref{opt_n_for_var} or \eqref{opt_n_for_cost} is function $N^{opt}(\vc V, \vc C)$ of the vector of level variances $\vc V$ and the vector of level costs $\vc C$. As $\vc V$ and $\vc C$ are not known a priori, we want to estimate them on the fly from the increasing set of collected samples. as we collect the samples.  Level variances $V_l$ are estimated by the regression \eqref{eq:regression}, sample cost $C_l$ is simply the average sample time of collected samples on the level $l$. 
@@ -320,219 +836,6 @@ iteration                                  & samples  & $l_{1}$     & $l_{2}$   
 
 
 
-\section{Maximal Entropy method}
-The MLMC  estimator \eqref{eq:mlmc_est} can reuse the set of collected samples $X^l_i$ to estimate also any generalized moment of the random variable $X$. In this section we will use a finite set of moments to construct an approximation to the density function of $X$.
-
-Let $X$ be a continuous random variable with density function $\rho$
-and assume then $supp(\rho) \subset \Omega$ for a bounded.
-interval $\Omega \subset \R$. Further consider generalized moments
-\begin{equation}
-    \label{eq:gen_moments}
-    \mu_r = \E_{\rho}[\phi_r(X)], \quad 
-\end{equation}
-for a finite set of linearly independent moment functions $\phi_r\in L^2(\Omega, \rho)\cap L^1(\Omega, \rho)$, $r=1,\dots, R$ generating the space
-\[
-    \mathcal V = \Span\{\phi_r, r=1,\dots, R\}.
-\] We shall use also the vector notation $\vc \phi = (\phi_1, \dots,\phi_R)$. \todo{Define spaces $L^p(\Omega, \rho)$.}
-
-The same set of collected samples $X^l_i$ can be reused to compute MLMC estimates of  moments $\mu_r$ as
-\[
-	\hat\mu_r = \sum_{l=1}^L \avg{\phi_r(X^l) - \phi_r(X^{l-1})}_{N_l}.
-\]
-
-Now we want to find an approximation $\rho^R$ to the unknown density $\rho$ using only the exact moments $\vc \mu$. There is infinite many of such densities so we choose the one that maximize Shanon's entropy:
-\[
-    S(\rho) = - \E_\rho \log \rho
-\], which corresponds to the minimization of any additional information. 
-In more general setting we may assume a density $p$ of a prior distribution. And minimize the Kullbeck-Leibler divergence:
-\[
-    D(\rho||p) = \int \rho(x) \ln(\rho(x)/ p(x) \d x.
-\]
-This leads to the minimization of the functional:
-\begin{align}
-    \Phi(\rho, \vc\lambda) 
-    &= 
-    \int \rho \Big( \vc\lambda \cdot \vc \phi - \log(\rho/p) \Big) \d x - \vc\lambda \cdot \vc\mu.
-\end{align}
-Setting the variation with respect to $\rho$ equal to zero leads to
-the approximation in the from:
-\[
-    \rho^R(x) = p \exp\Big\{\vc \lambda \cdot \vc \phi \Big\}
-\]
-if we assume $\phi_0(x) = 1$. The parameter$\vc\lambda$ is solution
-to the nonlinear system of equations:
-\begin{equation}
-    \label{eq:moment_system}
-    \int \vc\phi\, p e^{\vc\lambda\cdot \vc\phi}\d x = \vc \mu
-\end{equation}
-with the Jacobi matrix:
-\[
-    \tn H = \int \vc\phi \otimes \vc \phi\, 
-    p e^{\vc\lambda\cdot\vc\phi} \d x.
-\]
-
-\begin{lemma}
-If $p$ is strictly positive and measurable on $K_n$ and functions $\phi_r$ are linearly independent, then matrix $\tn H$ is symmetric positive definite for any $\vc \lambda$.
-\end{lemma}
-First assume that functions $\phi_r(x)$ form an ortonormal set with respect to the space $L^2(K_n)$. Then for any non-zero $\vc u$ from $\R^R$  we have:
-\[
-    \vc u^T \tn H \vc u = \int_{K_n} \Big\{\sum_r u_r \phi_r(x)\Big\}^2 p(x) \exp\Big\{ \vc\lambda\cdot \vc\phi(x)\Big\} \d x \ge k \norm{U}^2_{L^2(K_n)} > 0
-\]
-for some $0< k \le p(x)\exp\Big\{ \vc\lambda\cdot \vc\phi(x)\Big\}$.
-
-\subsection{Projection to exponential family}
-Further on all densities are considered on $\Omega$.
-Following \cite{Barron1991}, for a given $\vc \mu$ let us define
-set of densities with appropriate moments:
-\[
-    C_{\vc \mu} = \{ \rho : \E_\rho[\vc \phi] = \vc \mu \}
-\]
-And consider exponential family of densities:
-\[
-    \mathcal F_{p} = \{ \rho_{\vc\lambda} = 
-    p e^{\vc\lambda\cdot\vc\phi} :
-    \vc\lambda \in \R^R, \int_{\Omega}\rho_{\vc\lambda}=1\}.
-\]
-Consider minimization problem for the functional:
-\[
-F(\vc\lambda) = \int_{\Omega} \rho_{\lambda} - \vc\lambda\cdot\vc\mu
-\]
-for any $\lambda\in\R$. The functional is strictly convex due to strict convexity of $e^t$ and therefore the problem posses unique global minimum at $\lambda^*$. Moreover as $\prtl_{\vc\lambda} \rho_{\vc\lambda}$ is bounded on $\Omega$ the optimality conditions
-implies the $\lambda^*$ is solution of the system \eqref{eq:moment_system}. Then we can apply \cite[Lemma 18]{Barron1991} to get decomposition:
-\[
-    D(\rho||\rho_{\lambda}) = D(\rho||\rho_{\lambda^*}) + D(\rho_{\lambda^*}||\rho_{\lambda}).
-\]
-for any $\rho\in C_{\vc\mu}$. Proof is straightforward application of the identity $\E_\rho[\vc\phi] = \E_\rho_{\vc\lambda^*}[\vc\phi]$
-due to \eqref{eq:moment_system}.
-
-
-\todo{TODO:\\
-Cite estimates for $D(\rho||\rho_{\lambda})$.
-
-Modify estimates for $D(\rho||\rho_{\lambda})$ using $q=p$ and
-approximation of $Cov_p \vc phi$ for Legendere polynoms $\vc\phi$.
-
-Probabilistic result $D(\rho_{\lambda*} || \rho_{\lambda}) < V/p$
-with probability at least $1-p$, where 
-\[
-    V = \sum_r \sum_l \frac{1}{N_l} \Var \delta^l\phi_r \approx \sum_r \sum_l \frac{1}{N_l} \hat{\Var} \delta^l\phi_r 
-\]
-
-Apply modification of the basis in the nonlinear algorithm, this should improve convergence.
-
-Estimation of variances seems to not be critical
-
-}
-
- 
-
-
-
-\subsection{Equivalent minimization problem}
-The system \eqref{eq:lagrange_sys} can be rephrased as a minimization problem
-for the functional:
-\[
-    J^*(\vc\lambda) = \int_{K_n} -\exp\Big\{ - \vc\lambda\cdot \vc\phi(x)\Big\} \d x  - \sum_r \mu_r \lambda_r.
-\]
-
-Alternatively one can use only $\lambda_1,\dots,\lambda_R$ as independent unknowns
-and write down $\rho_n$ with explicit normalization:
-\[
- \rho(x) = \frac{1}{Z(\vc \lambda)} p(x) \exp\Big\{ \sum_{r=1}^R \lambda_r \phi_r(x)\Big\}
-\]
-where $Z$ is the partition function:
-\[
-Z(\vc \lambda) = \exp(-\lambda_0) = \int_{K_n} p(x) \exp\Big\{ \sum_{r=1}^R \lambda_r \phi_r(x)\Big\}.
-\]
-Then the solution $\vc\lambda$ of the non-linear system \eqref{eq:lagrange_sys} is equivalent to the solution of the minimization problem for the functional:
-\[
-    J(\lambda_1, \dots, \lambda_R) = \ln Z - \sum_{r=1}^R \mu_r \lambda_r
-\]
-setting $\lambda_0 = -\ln Z$.
-
-\subsection{Error estimates}
-Error measured by KL-divergence:
-\[
-    D_KL(p||q) = \int_R \ln(\frac{p(x)}{q(x)}) p(x) \d x 
-\]
-Let $X$ have density $\rho$. We denote 
-\[
-    \rho(x; \lambda) = \exp\Big(\vc \lambda \vc \phi(x)\Big)
-\]
-an approximation of $\rho$ with $\vc \phi \in W$. In particular
-let $\rho^R=\rho(\cdot;\lambda)$ denote best approximation (minimal $D_KL(\rho||\rho^R)$
-in this space and $\tilde\rho^R=\rho(\cdot;\tilde\lambda)$ any other approximation. For such densities it holds  
-\[
-    D_KL(\rho||\tilde\rho) 
-    = \int_R \ln\Big(\frac{\rho}{\tilde\rho^R}\Big) \rho \d x
-    = \int_R \ln\Big(\frac{\rho}{\rho^R} \rho \d x 
-    + \int_R \ln\Big(\frac{\rho^R}{\tilde\rho^R} \rho \d x
-\]
-\[
-\int_R (\vc\lambda - \vc{\tilde\lambda}) \cdot \vc \phi (\rho - \rho^R) \d x
- = 0
- \]
-
-\section{Choice of moments}
-\subsection{Monomials}
-First choice for moment functions are monomials:
-\[
-    \phi_r(x) = x^r
-\]
-corresponding to classical moments.
-In order to improve conditioning of the problem we should use centralized moments:
-\begin{align}
-    \phi_0(x) &= 1\\
-    \phi_1(x) &= x - \mu_1\\
-    \phi_r(x) &= \phi_r(x - \mu_1), \text{ for }r=1\dots R
-\end{align}
-with $\mu_0 = 1$.
-
-However as the entropy function $e_n(x) = -\ln(\rho_n)$ is a linear combination of the generalized moment functions, it may expect that using monomials leads to badly conditioned non-linear problem. In order to 
-get better conditioning needs to choice moment functions to be nearly orthogonal and possibly with small support.
-
-\subsection{Fourier moment functions}
-
-
-\subsection{Spline approximation}
-In order to keep Jacobi matrix well conditioned can keep supports of $\phi_r$ to be mostly disjoint since if $supp \phi_r$ is disjoint with $supp \phi_s$ we have $H_{rs} = 0$.
-In order to keep basic smoothness, we may use spline base functions, in particular cubic splines.
-
-
-\section{Approximation error}
-Usual way to measure error of the approximation of the density function is the Kullback–Leibler divergence (see 
-\href{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence}{wikipedia}):
-\[
-D_{KL}(P, Q) = \int_{R} p(x)\log p(x)  - p(x)\log q(x) \d x
-\]
-This measures the information of the true density function $p$ that is lost when using its approximation $q$. Or $p$ can be viewed as a posterior distribution (having full information) and $q$ as prior distribution in Bayesian framework.
-
-In our case, we take $q(x)=\rho_n(x)$. Now we want to know how the divergence is influenced by the variance of moments $\mu_r'$, which are given by the MC approximation.
-
-\section{Synthetic experiments}
-\section{Correlated random fields}
-We what to generate realizations of a random field: $Z(\vc x, \omega)$, for $\vc x$ in domain $D \subset R^d$. We consider {\it second order field}, i.e. with finite variance for every $\vc x\in D$. For such fields we can define mean:
-\[
-    \mu_Z(\vc x) = \E\big[ Z(\vc x) \big]
-\]
-and covariance:
-\[
-    C_Z(\vc x, \vc y) = \E\big[ (Z(\vc x) - \mu(\vc x))(Z(\vc y) - \mu(\vc y)) \big]
-\]
-
-We restrict ourself to the case of stationary fields, where $C$ depends only on $(\vc x - \vc y)$. Our aim is to compute lot of realizations of the field fro a fixed set of points. Further on, we focus on the zero-mean fields:
-\[
-    \tilde Z(\vc x) = Z(\vc x) - \mu(\vc x), \E(\tilde Z) = 0.
-\]
-
-TODO:
-\begin{itemize}
-\item Approximation of quantiles or distribution function via. density is not optimal, since the error is accumulated through integration of the density. Consider approximation of distribution via. approximation of Havyside function (see Giles), propose some approximation for quantiles.
-
-\item Derive error estimates for density, quantiles, distribution  for various set of moments. How to approximate tails? Is the maximum entropy the best choice?
-
-\item How to use MLMC for generated random fractures, in particular how to make two generated fracture sets that are "correleated".
-\end{itemize}
 
 \section{Sampling  of Random Fields}
 This section is devoted to the problematic of generating cross-correlated random fields.
