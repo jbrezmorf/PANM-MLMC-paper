@@ -38,6 +38,14 @@
 \def\abs#1{|#1|}
 \DeclareMathOperator{\Span}{span}
 
+\def\vl{{\vc\lambda}}
+\def\estvl{{\vc{\hat\lambda}}}
+\def\estrho{\hat\rho}
+\def\vmu{\vc\mu}
+\def\estvmu{{\vc{\hat\mu}}}
+\def\vphi{\vc\phi}
+
+
 \title{Application of Multilevel Monte Carlo Maximum Entropy method to Contaminant Transport}
 \author{jan.brezina }
 \date{September 2018}
@@ -149,7 +157,7 @@ By the same token we have
 \end{equation}
 Evaluation cost $C_l$ of the single sample difference $X^{l-1}(\omega) - X^l(\omega)$ is
 \[
-  C_l = \mathcal O( h_l^{-p}) \le C 2^\gamma l, \quad \gamma = p\alpha.
+  C_l = \mathcal O( h_l^{-p}) \le C 2^{\gamma l}, \quad \gamma = p\alpha.
 \]
 For example in the case of linear elliptic equations using a multigrid solver one can get $p$ close to the problem dimension $d=1,2,3$. For more complex or time-dependent problems the power $p$ can be larger, but 
 still it is usually independent of the choice of order of approximation $s$. Therefore, we may assume
@@ -158,33 +166,43 @@ $\epsilon< \frac{1}{e}$ we can found the sample vector $\vc N$ such that the MLM
 \[
   \E[\avg{X}_N - \E X]^2 \le \epsilon^2
 \]
-and the total cost bounded as $C < c \epsilon^{-2}$. 
+and the total cost bounded as $C < c \epsilon^{-2}$.
 
 
 \subsection{Optimal choice of number of samples}
-Efficiency of the MLMC estimator \eqref{eq:mlmc_est} depends on the optimal choice of the sample vector $\vc N$.
-Basic analysis was done by Giles in \cite{Giles2015}. In this section we report the formulas \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} and propose slight modification suitable for practical usage.
+Efficiency of the MLMC estimator \eqref{eq:mlmc_est} depends on the optimal choice of the sample vector $\vc N$. Basic analysis was done by Giles in \cite{Giles2008} and \cite{Giles2015}. In this section we report the formulas \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} for optimal $\vc N$ in the case of given target variance $V$ or in the case of target cost $C$ respectively. Further, we propose slight modification suitable for practical usage.
 
 Let  the level variances $V_l$ be given and let us denote $C_l$ the computational cost of a single sample of the difference $\Delta X^l$ at the level $l=1,\dots, L$. For a given target variance $V$ (c.f. \eqref{eq:var_mlmc}), we want to minimize the total cost
 \begin{equation}
     \label{eq:total_cost}
-	C = \sum_l C_l N_l.
+	C = \sum_{l=1}^{L} C_l N_l.
 \end{equation}
 This leads to minimization problem for the functional
 \[
 	\Phi(N_1, \dots, N_L,\lambda) = \sum_l C_l N_l + \lambda \Big(\sum_l \frac{V_l}{N_l} - V\Big).
 \]
-Straightforward calculation then provides optimal choice of $\vc N$ for given $V$ reported already in \cite{Giles2015}:
+Straightforward calculation then provides optimal choice of $\vc N$ for given $V$:
 \begin{equation}
 	\label{eq:opt_n_for_var}
-	N_l^V = \sqrt{\frac{V_l}{C_l}} \frac{\sum_i \sqrt{V_i C_i}}{V}, \quad \text{for }l=1,\dots, L.
+	N_l^V = \sqrt{\frac{V_l}{C_l}} \frac{S}{V},\ \text{for }l=1,\dots, L,\quad \text{with } S = \sum_{i=1}^L \sqrt{V_i C_i}.
 \end{equation}
 Similarly we obtain $\vc N$ that minimize the total variance for the fixed total cost $C$ as
 \begin{equation}
 	\label{eq:opt_n_for_cost}
-	N_l^C = \sqrt{\frac{V_l}{C_l}} \frac{C}{\sum_i \sqrt{V_i C_i}}
+	N_l^C = \sqrt{\frac{V_l}{C_l}} \frac{C}{S}
 	, \quad \text{for }l=1,\dots, L.
 \end{equation}
+Considering $V_l \le C_{v} 2^{-\beta l}$ and $C_l \le C_{c} 2^{\gamma l}$ we have total cost
+\[
+   C \le \frac{S^2}{V} = C_v C_c c \epsilon^{-2},
+\]
+where 
+\[ 
+   c = \left(\sum_{l=1}^{L} q^l\right)^2 \le (1-q)^{-2},\ q=2^\frac{\gamma - \beta}{2}
+\]
+for given target varaince $V=\epsilon^2$. Similarly, $V \le S^2 / C$ for given target cost $C$.
+
+
 
 Formulas \eqref{eq:opt_n_for_var} and \eqref{eq:opt_n_for_cost} are based on the knowledge of the level variances $V_l$ and computational costs $C_l$ which are usually not known and must be estimated (see Section \ref{sec:VarEst}). These small errors lead to large changes in the optimal sample vector since related minimized functionals are quite flat at the optimal point.  This often results in overestimating the number of samples, especially on lower levels. To mitigate this problem we rather use
 \[
@@ -324,12 +342,6 @@ Notes:
 
 
 \section{Maximal Entropy method}
-\def\vl{{\vc\lambda}}
-\def\estvl{{\vc{\hat\lambda}}}
-\def\estrho{\hat\rho}
-\def\vmu{\vc\mu}
-\def\estvmu{{\vc{\hat\mu}}}
-\def\vphi{\vc\phi}
 
 The MLMC  estimator \eqref{eq:mlmc_est} can be applied to estimate any generalized moment $\E[\phi(X)]$ 
 of the random variable $X$ using the same set of random samples. Taking a suitable 
@@ -480,7 +492,11 @@ Then for the approximation error, we have estimate:
 D(\rho\Vert\rho_{\vl})  \le \frac{\abs{\Omega}}{2} e^{\epsilon} \epsilon^2.
 \]
 \end{lemma}
-\todo{Jak je to s volbou $M$, z tohoto lematu by clovek rekl pokud zvolim dost vysoke $M$ tak mohu aproximovat libovolne presne a koverguje to pomerne rychle. Na druhou stranu numerika muze rici, ze por dana data nedostanu lepsi aproximaci zvetsenim $M$. Pro numericky smysluplne $M$ muze byt aproximation error pripadne velmi vysoka. Je nejaka sance udelat neco jako a posteriorni odhad?} 
+\todo{Jak je to s volbou $M$, z tohoto lematu by clovek rekl pokud zvolim dost vysoke $M$ tak mohu aproximovat libovolne presne a kovergence je rychla.
+Na druhou z numerickych testu to vypada, ze pro vetsi $M$ dostavame velke oscilace v hustote. 
+Jedno vysvetleni je, ze KL divergence muze byt mal i pro oscilujici aproximaci hustoty. Potrebujeme numericke testy pro presne hustoty.
+Je nejaka sance udelat neco jako a posteriorni odhad?} 
+
 \begin{proof}
 Lemma \ref{thm:decomposition} states:
 \[
@@ -649,8 +665,8 @@ Estimator gives non-central covariance estimate:
 \]
 Then we compute the covariance approximation as: $\hat{\tn C} = \tn M \avg{H} \tn M^T$.
 Then we compute eigenvalue decomposition $\hat{\tn C}= P \Lambda P^T$. 
-Then we drop negative eigenvalues and in the reamining sequence
-of decreasing values $\log \lambda_i$ we detect a construct a linear model for a floating window of eigenvalues and detect a point of rapid decrrease of the values (Figure). Let us denote $N$ the number of remaining eigen values and eigen vectors. Having eigen values $\lambda_1 \dots \lambda_N$ and $M\times N$ matix $Q$ of remaining eigen vectors. It still holds $Q^T Q = I$ with $[N\times N]$. 
+Then we drop negative eigenvalues and in the remaining sequence
+of decreasing values $\log \lambda_i$ we detect a construct a linear model for a floating window of eigenvalues and detect a point of rapid decrease of the values (Figure). Let us denote $N$ the number of remaining eigen values and eigenvectors. Having eigen values $\lambda_1 \dots \lambda_N$ and $M\times N$ matix $Q$ of remaining eigen vectors. It still holds $Q^T Q = I$ with $[N\times N]$. 
 We have:
 \[
    \tn H \approx M Q\Lambda' Q^TM^T
