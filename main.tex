@@ -38,6 +38,7 @@
 \def\abs#1{|#1|}
 \DeclareMathOperator{\Span}{span}
 
+\def\tvl{\vc{\tilde\lambda}}
 \def\vl{{\vc\lambda}}
 \def\estvl{{\vc{\hat\lambda}}}
 \def\estrho{\hat\rho}
@@ -46,7 +47,7 @@
 \def\vphi{\vc\phi}
 
 
-\title{Application of Multilevel Monte Carlo Maximum Entropy method to Contaminant Transport}
+\title{Robust Density Estimation Using Maximal Entropy Multilevel Monte Carlo method. }
 \author{jan.brezina }
 \date{September 2018}
 
@@ -530,6 +531,7 @@ For the case of polynomial approximation $\mathcal V_M = P^M(\Omega)$ we can dir
 \]
 \subsection{Estimation error}
 We start with sensitivity estimate for the nonlinear system \eqref{eq:moment_system}.
+
 \begin{lemma}
 \label{thm:lambda_est}
 Let $\estvl(\estvmu)$ be the solution of the system \eqref{eq:moment_system} for an approximation 
@@ -541,23 +543,190 @@ for exact moments $\vmu$. Then
 where $\alpha_0$ is the smallest eigenvalue of the Hessian matrix $\tn H(\estvl)$
 \end{lemma}
 \begin{proof}
-Due to convexity of $e^t$, we have
-\begin{equation}
-  \label{eq:exp_ineq}
-  e^a(b-a)^2 \le (b -a)(e^b - e^a).
-\end{equation}
-for any $a, b\in \R$. This is direct corrolary of $1+t \le e^t$ with $t = b-a$.
+Unfortunately we are yet unable to proof this result. So we try some numerical tests.
+
+\includegraphics[width=\textwidth]{mu_to_lambda.pdf}
+
+The blue dots have coordinates: $(|\vmu - \estvmu|, |\vl - \estvl|)$, blue lines are estimates for bounds from \cite{Barron1991}. The red dots are $(|\vmu - \estvmu|, \alpha_0|\vl - \estvl|)$,
+red line have slope $\alpha_0$. The results for the six test distributions suggest validity of our estimate at least when the moment error $|\vmu - \estvmu|$ is not to large.
+
+Further numerical tests confirms that the eigenvalues of the Hessian $\tn H(\estvl)$ are usually close to one. And smallest eigenvalue seems to increase as $\estvl$ tends to $\vl$. 
+$\tn H(\estvl)$ should be very close to one, but it is not the case for some test distributions, but the limit value is somewhat smaller. Possibly that could be caused by insuficient normalization. 
+However it seems that the lambda bound holds even without renormalization.
+
+Here, we present some partial results and observations.
+Let us denote $a=\vl\cdot\vphi$ and $b = \estvl\cdot\vphi$. We start with:
+\[
+  (\vl - \estvl)\cdot(\vmu - \estvmu)
+      = \int_{\Omega} p \big[(\vl - \estvl)\cdot\vphi\big] (e^{(\vl\cdot\vphi} - e^{\estvl\cdot\vphi})
+      =\int_{\Omega} p (a - b)(e^a - e^b)
+\]
+
+The next step is usage of $sinh$ expansion:
+\[
+ e^a - e^b = 2 e^{\frac{a+b}{2}}\frac{1}{2}\Big[e^{\frac{a-b}{2}} - e^{\frac{b-a}{2}}\Big] = 
+ 2 e^{\frac{a+b}{2}}\sinh(\frac{a-b}{2}),
+\]
+considering the expansion:
+\[
+    \sinh(x) = x + \frac{x^3}{6} + \frac{x^5}{120} + \dots
+\]
+we get an estimate
+ \[
+  (a-b)(e^a - e^b) \ge e^{\frac{a+b}{2}}\Big[|a-b|^2 + \frac{1}{24}|a-b|^4 + \dots\Big].
+ \]
+
+ All terms on the right have sign. Using just the first term, get a result:
+\[
+  (\vl - \estvl)\cdot(\vmu - \estvmu) \ge \int_{\Omega} p (a - b)^2(e^{a+b/2})
+   \ge \frac{|\vl - \estvl|^2}{\alpha_0((\vl + \estvl)/2)}
+\]
+where $\alpha_0((\vl + \estvl)/2)$ is the smallest eigen value of the Hass matrix
+$\tn H((\vl + \estvl)/2)$. This is not so good as we only know $\estvl$. 
+
+ 
+ 
+ 
 
 
-Now we apply \eqref{eq:exp_ineq} with $a = \estvl\cdot\estvmu$ and $b=\vl\cdot\vmu$ to estimate:
+% 
+% The estimate starts with
+% 
+% Due to convexity of $f(t) = e^t$, we have
+% \[
+%     \frac{e^b - e^a}{b-a} \ge f'(\min(a,b))  = e^{\min(a,b)}
+% \]
+% for any $a, b\in \R$. Multiplying by $(b-a)^2\ge 0$ and using $\min(a,b) \ge a - |a-b|$, we get
+% \begin{equation}
+%   \label{eq:exp_ineq}
+%   (b-a)(e^b - e^a) \ge e^a e^{-|a-b|}(b-a)^2 
+% \end{equation}
+%  
+% 
+% 
+% Now we apply \eqref{eq:exp_ineq} with $a = \estvl\cdot\vphi$ and $b=\vl\cdot\vphi$ to estimate:
+% \[
+%   (\vl - \estvl)\cdot(\vmu - \estvmu)
+%       = \int_{\Omega} p \big[(\vl - \estvl)\cdot\vphi\big] (e^{\vl\cdot\vphi} - e^{\estvl\cdot\vphi})
+%       \ge \int_\Omega \big[(\vl - \estvl)\cdot\vphi\big]^2 pe^{\min(\estvl\cdot\vphi, \vl\cdot\vphi)}
+% \]
+% Further we can use:
+% \[
+%  \min(a, b) = \frac{a + b}{2} - \frac{|a - b|}{2}
+% \]
+% or 
+% \[
+%  \min(a, b) \ge a  - |a - b|.
+% \]
+% 
+% Using $\sinh$:
+% \[
+%  e^a - e^b = 2 e^{\frac{a+b}{2}}\frac{1}{2}\Big[e^{\frac{a-b}{2}} - e^{\frac{b-a}{2}}\Big] = 
+%  2 e^{\frac{a+b}{2}}\sinh(\frac{a-b}{2}),
+% \]
+% considering the expansion:
+% \[
+%     \sinh(x) = x + \frac{x^3}{6} + \frac{x^5}{120} + \dots
+% \]
+% 
+%  
+% Estimate according to Barron, Sheu \cite{Barron1991}. Lemma 5. 
+% \[
+%     |\vl_0 - \vl_r|^2 \le 2e^M e^\tau |\vl_0 - \vl_r| |\mu_0 - \mu_r|; \quad M = |\log  q/ \rho_0 |    
+% \]
+% 
+%  
+ 
+% We start our estimate with realization:
+% \[
+%     F_{\estvmu}(\vl_0) - F_{\estvmu}(\vl_r)  = -\mu_r(\vl_0 - \vl_r) \ge 0
+% \]
+% 
+% \[
+%     F_{\vmu}(\vl_r) - F_{\vmu}(\vl_0)  = -\mu_0(\vl_r - \vl_0) \ge 0
+% \]
+
+% \begin{align*}
+%   (\mu_r - \mu_0) \cdot (\vl_r - \vl_0) &- \frac12 e^{-\tau} (\vl_0 - \vl_r) \tn H(\vl_r) (\vl_0 - \vl_r) \\
+%   &=
+%   \int_\Omega \Big[ e^{\vl_r\cdot\vphi} - e^{\vl_0\cdot\vphi} \Big] (\vl_r - \vl_0) \cdot \vphi 
+%   -\int_\Omega  \frac12\big[ (\vl_0 - \vl_r) \cdot \vphi \big]^2 e^{\vl_r\cdot\vphi -\tau}\\
+%   &\ge \frac12\int_\Omega  \big[ (\vl_0 - \vl_r) \cdot \vphi \big]^2 \big[e^\frac{(\vl_r + \vl_0) \cdot \vphi}{2} - e^{\vl_r\cdot\vphi-\tau}\big]
+% \end{align*}
+
+Applying this we get:
+\[
+  (\mu_r - \mu_0) \cdot (\vl_r - \vl_0) =
+  \int_\Omega \Big[ e^{\vl_r\cdot\vphi} - e^{\vl_0\cdot\vphi} \Big] (\vl_r - \vl_0) \cdot \vphi 
+  \ge \int_\Omega  \big[ (\vl_0 - \vl_r) \cdot \vphi \big]^2 e^\frac{(\vl_r + \vl_0) \cdot \vphi}{2}
+\]
+or more precisely:
+\[
+  (\mu_r - \mu_0) \cdot (\vl_r - \vl_0) =
+  \int_\Omega  \big[ (\vl_0 - \vl_r) \cdot \vphi \big]^2 e^{\vl_r\cdot\vphi} e^\frac{(\vl_0 - \vl_r) \cdot \vphi}{2} S(x)
+\]
+where
+\[
+  S(x) = \sum_{n=0}^\infty \frac{|(\vl_0 - \vl_r) \cdot \vphi|^{2n}}{(2n+1)!2^{2n}}.
+\]
+
+
+
+
+
+Further we can estimate:
+\[
+    e^\frac{a + b}{2} \ge e^{a} - \abs{e^\frac{a + b}{2} - e^{a}}
+\]
+and then:
+\[
+ \abs{e^\frac{a + b}{2} - e^{a}} = 2e^\frac{3a+b}{4} \sinh\Big(\frac{|b-a|}{4}\Big)
+\]
+
+For any $0 \le x \le \tau$ we have $\sinh(x) \le \sinh(\tau) x$, thus
+\[
+ \abs{e^\frac{a + b}{2} - e^{a}} \le 2e^\frac{3a+b}{4} \sinh(\tau) \frac{|b-a|}{4}
+ =  \sqrt{2\epsilon} e^{a/2}|a-b| \frac{\sinh(\tau)}{2\sqrt{2\epsilon}} e^{\frac{a+b}{4}}  \le 
+    \epsilon e^{a}|a-b|^2 +  C e^{\frac{a+b}{2}}
+\]
+with $C = \frac{\sinh^2(\tau)}{16\epsilon}$.
+combining together:
 \begin{align*}
-  \alpha_0 \abs{\vl - \estvl}^2 &\le  (\vl-\estvl)^T\tn H(\estvl)(\vl -\estvl)\\
+ (\mu_r - \mu_0) \cdot (\vl_r - \vl_0) 
+ \ge (1-\epsilon)\int_\Omega  \big[ (\vl_0 - \vl_r) \cdot \vphi \big]^2 e^{\vl_r \cdot \vphi}
+ -C \int_\Omega e^\frac{(\vl_r + \vl_0) \cdot \vphi}{2}
+\end{align*}
+However the last term is 
+
+
+
+
+
+
+
+
+
+
+
+\[
+ e^\frac{(\vl_r + \vl_0) \cdot \vphi}{2} - e^{\vl_r\cdot\vphi-\tau} \ge 
+\]
+
+
+
+
+
+\begin{align*}
+  \alpha_0 e^\abs{\vl - \estvl}^2 &\le  (\vl-\estvl)^T\tn H(\estvl)(\vl -\estvl)\\
   &= \int_\Omega (\vl\cdot\vphi  - \estvl\cdot\vphi)^2 pe^{\estvl\cdot\vphi}
   \le \int_{\Omega} (\vl\cdot\vphi - \estvl\cdot\vphi) 
   p(e^{\vl\cdot\vphi} - e^{\estvl\cdot\vphi})\\
   &=  (\vl - \estvl)\cdot(\vmu - \estvmu) \le \abs{\vl - \estvl}\abs{\vmu - \estvmu}
 \end{align*}
 \end{proof}
+
+
+
 
 Then for the estimation error we have following result.
 \begin{lemma}
@@ -571,7 +740,6 @@ Then for the estimation error we have following result.
 \end{lemma}
 
 \begin{proof}
-\def\tvl{\vc{\tilde\lambda}}
 For any $\tvl$, we denote (c.f. \eqref{eq:min_problem}):
 \[
 F_{\estvmu}(\tvl) = \int_{\Omega} \rho_{\tvl} - \tvl\cdot\estvmu.
