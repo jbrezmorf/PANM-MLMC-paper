@@ -585,7 +585,40 @@ where $\alpha_0((\vl + \estvl)/2)$ is the smallest eigen value of the Hass matri
 $\tn H((\vl + \estvl)/2)$. This is not so good as we only know $\estvl$. 
 
  
- 
+Other possible way:
+\[
+   \int_\Omega \rho_{\vl} = \int_{\Omega} p e^a = 1
+\]
+
+\[
+ \int_\Omega \rho_{\estvl} = \int_{\Omega} p e^b  = \int_{\Omega} p e^a e^{b-a}  = 1
+\]
+
+\[
+   \int_\Omega p e^a \Big(1 - e^{b-a}\Big) = \int_{\Omega} p e^a = 0
+\]
+Now we multiply by yet unspecified factor $r$ and add to the estimate:
+
+\[
+  (\vl - \estvl)\cdot(\vmu - \estvmu) 
+      = \int_{\Omega} p (a - b) e^a\Big(1 - e^{b-a}\Big) =
+      = \int_{\Omega} p e^a\Big(1 - e^{b-a}\Big)\Big(a - b + r\Big)
+\]
+Assume $a-b = (\vl-\estvl) \cdot \phi(x) \le M$, which is a corrolary of the estimates
+derived by \cite{Barron1991}. Alternatively we can possibly prove it from normalization equations for both $\vl$ and $\estvl$. With this assimption we have:
+\[
+ \Big(1 - e^{b-a}\Big)\Big(a - b + r\Big) \ge (a-b)^2
+\]
+setting $r 2= M^2$. Indeed, denoting $x=a-b$:
+\[
+  (1 - e^{-x})x \ge x^2\quad\text{ for } x<0
+\]
+and 
+\[
+  (1 - e^{-x})x \ge \frac12 x^2\quad\text{ for } x<0
+\]
+
+
  
 
 
