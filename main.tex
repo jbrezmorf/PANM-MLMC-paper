@@ -47,9 +47,10 @@
 \def\vphi{\vc\phi}
 
 
-\title{Robust Density Estimation Using Maximal Entropy Multilevel Monte Carlo method. }
-\author{jan.brezina }
-\date{September 2018}
+\title{Precondictioned Multilevel Monte Carlo
+\\ Maximal Entropy metod}
+\author{Jan Březina, Martin Špetlík}
+\date{2021}
 
 
 \begin{document}
@@ -75,12 +76,12 @@ Elliptic eq. with log normal coefficients \cite{Graham2015}
 
  However the limitation is that MLMC can compute only approximation of expectation of any random variable. Therefore it is straight forward to make approximation of the mean, the variance and other moments, while it is not possible to approximate the quantiles and the distribution function directly. On the other way, the moment function or characteristic function are given in terms of expectations, which motivates a general approximation of the density function in terms of generalized moments.
 
-Possible outcomes:
+Aims:
 \begin{itemize}
-    \item Research for suitable statistical models for complex hydrology problems (porosity, conductivity, dispersion, fracture openning, fracture density, ... dependency on the length scale).
-    \item Demonstrate efficiency of MLMC for estimation various moments of relevant quantities of interest.
-    \item Demonstrate efficient generation of samples for various types of correlations.
-    \item Demonstrate reconstruction of the density function.
+    \item Practical estimates of the KL-divergence error by the moments error.
+    \item Preconditioning via Covariance matrix estimation.
+    \item Tests on synthetic densities.
+    \item Test on PDE problem.
 \end{itemize}
 
 \section{Multilevel Monte Carlo method}
@@ -299,7 +300,8 @@ $$
     \ D_{i,i} = 1/\epsilon_{l}.
 $$
 
-Values of $\epsilon_l$ as a function of $l$ will be determined by MC. Note also that using the \href{https://en.wikipedia.org/wiki/Probability_density_function#Dependent_variables_and_change_of_variables}{Jacobi transform} we obtain PDF of $\epsilon_l$ as:
+Values of $\epsilon_l$ as a function of $l$ will be determined by MC. Note also that using the 
+\href{https://www.researchgate.net/post/How_can_I_obtain_the_PDF_of_the_logarithm_of_a_chi-squared_random_variable}{transformation} we obtain PDF of $\epsilon_l$ as:
 $$
     f(\epsilon) = \exp(\epsilon)N_l\chi^2_{n-1}(\exp(\epsilon)N_l).
 $$
